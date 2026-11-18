@@ -1,0 +1,56 @@
+# Publica la web en GitHub Pages con datos frescos de CelesTrak.
+# Se ejecuta en cada push a main y cada 6 horas (dentro del límite de uso de CelesTrak).
+# Activa Pages en el repo: Settings → Pages → Source: "GitHub Actions".
+name: Desplegar
+
+on:
+  push:
+    branches: [main]
+  schedule:
+    - cron: '17 */6 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      # Dirección pública de la web, para la vista previa de los enlaces (og:image necesita una URL absoluta)
+      - id: pages
+        uses: actions/configure-pages@v5
+      - name: Descargar catálogo de CelesTrak
+        run: npm run fetch-data
+      - name: Compilar
+        run: npm run build
+        env:
+          # Subruta: https://<usuario>.github.io/<repo>/, salvo si el repo se llama <usuario>.github.io
+          # (o hay dominio propio): entonces la web está en la raíz
+          BASE_PATH: ${{ steps.pages.outputs.base_path != '' && format('{0}/', steps.pages.outputs.base_path) || '/' }}
+          VITE_SITE_URL: ${{ steps.pages.outputs.base_url }}/
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

@@ -1,0 +1,142 @@
+{
+  "_comment": "Orden = prioridad. Un satélite se asigna al primer grupo que lo contenga. 'celestrak' es el valor GROUP de gp.php (solo para grupos pequeños cuyos nombres no bastan para clasificarlos); 'match' es una expresión regular sobre OBJECT_NAME. Las megaconstelaciones (Starlink, OneWeb, Kuiper, Qianfan) se clasifican solo por nombre: descargarlas aparte duplicaría miles de registros que ya vienen en 'active', y CelesTrak limita esas descargas grandes.",
+  "groups": [
+    {
+      "id": "mission",
+      "label": "My satellites",
+      "color": "#ff7ad9",
+      "celestrak": null,
+      "match": null
+    },
+    {
+      "id": "stations",
+      "label": "Space stations",
+      "color": "#ffffff",
+      "celestrak": "stations",
+      "match": "^(ISS \\(ZARYA\\)|CSS \\(TIANHE\\)|TIANGONG)"
+    },
+    {
+      "id": "starlink",
+      "label": "Starlink",
+      "color": "#d6e2ff",
+      "celestrak": null,
+      "match": "^STARLINK"
+    },
+    {
+      "id": "oneweb",
+      "label": "OneWeb",
+      "color": "#ff8a5b",
+      "celestrak": null,
+      "match": "^ONEWEB"
+    },
+    {
+      "id": "kuiper",
+      "label": "Amazon Kuiper",
+      "color": "#ffc857",
+      "celestrak": null,
+      "match": "^KUIPER"
+    },
+    {
+      "id": "qianfan",
+      "label": "Qianfan",
+      "color": "#ff5d8f",
+      "celestrak": null,
+      "match": "^QIANFAN"
+    },
+    {
+      "id": "iridium",
+      "label": "Iridium NEXT",
+      "color": "#7ce0b4",
+      "celestrak": null,
+      "match": "^IRIDIUM"
+    },
+    {
+      "id": "globalstar",
+      "label": "Globalstar",
+      "color": "#b5e35b",
+      "celestrak": null,
+      "match": "^GLOBALSTAR"
+    },
+    {
+      "id": "orbcomm",
+      "label": "Orbcomm",
+      "color": "#e0a3ff",
+      "celestrak": null,
+      "match": "^ORBCOMM"
+    },
+    {
+      "id": "gps",
+      "label": "GPS",
+      "color": "#5bd1ff",
+      "celestrak": "gps-ops",
+      "match": "^(GPS |NAVSTAR)"
+    },
+    {
+      "id": "galileo",
+      "label": "Galileo",
+      "color": "#4f8cff",
+      "celestrak": "galileo",
+      "match": "GALILEO"
+    },
+    {
+      "id": "glonass",
+      "label": "GLONASS",
+      "color": "#c77dff",
+      "celestrak": "glo-ops",
+      "match": "GLONASS"
+    },
+    {
+      "id": "beidou",
+      "label": "BeiDou",
+      "color": "#ff6b6b",
+      "celestrak": "beidou",
+      "match": "^BEIDOU"
+    },
+    {
+      "id": "planet",
+      "label": "Planet",
+      "color": "#3ddc97",
+      "celestrak": "planet",
+      "match": "^(FLOCK|SKYSAT|PELICAN|TANAGER)"
+    },
+    {
+      "id": "spire",
+      "label": "Spire",
+      "color": "#00c2a8",
+      "celestrak": null,
+      "match": "^LEMUR"
+    },
+    {
+      "id": "weather",
+      "label": "Weather",
+      "color": "#9fb6ff",
+      "celestrak": "weather",
+      "match": "^(NOAA|GOES|METEOSAT|METOP|HIMAWARI|FENGYUN|FY-)"
+    },
+    {
+      "id": "geo",
+      "label": "Geostationary",
+      "color": "#f2a65a",
+      "celestrak": "geo",
+      "match": null
+    },
+    {
+      "id": "debris",
+      "label": "Debris",
+      "color": "#c98f7a",
+      "celestrak": [
+        "fengyun-1c-debris",
+        "iridium-33-debris",
+        "cosmos-2251-debris"
+      ],
+      "match": " DEB$| DEB "
+    },
+    {
+      "id": "other",
+      "label": "Other active",
+      "color": "#7d8bab",
+      "celestrak": null,
+      "match": null
+    }
+  ]
+}

@@ -1,0 +1,6 @@
+node_modules
+dist
+.cache
+# El catálogo se genera con `npm run fetch-data` (y en la GitHub Action en cada despliegue)
+public/data/catalog.json
+public/data/spaceweather.json
