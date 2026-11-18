@@ -920,3 +920,35 @@ table.cmp thead th { padding: 4px 0; text-align: right; }
 /* Valor calculado dentro de una rejilla de formulario */
 .form-out { color: var(--ink-2); font-size: 13.5px; }
 .form-out-value { display: flex; align-items: center; height: 32px; margin-top: 4px; font-variant-numeric: tabular-nums; font-size: 15px; color: var(--ink); }
+
+/* ——— Planificador de imágenes de satélite ——— */
+.img-tab h3.block-title, .img-tab .block-title-row { margin-top: 26px; }
+.img-place { margin: 0 0 4px; color: var(--ink-2); font-size: 14px; font-variant-numeric: tabular-nums; }
+.img-place strong { color: var(--ink); font-weight: 600; margin-right: 6px; }
+.img-missions { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); }
+.img-dot { display: inline-block; width: 9px; height: 9px; margin-right: 7px; border-radius: 50%; vertical-align: 0; }
+.img-only { display: inline-flex; align-items: center; gap: 6px; color: var(--ink-2); font-size: 13.5px; }
+.img-day { margin-top: 14px; }
+.img-day-title { margin: 0 0 4px; color: var(--ink-2); font-size: 13px; font-weight: 600; }
+.img-list { margin: 0; padding: 0; list-style: none; }
+.img-pass { display: grid; grid-template-columns: 58px minmax(0, 1fr) auto; gap: 12px; align-items: start; width: 100%; padding: 9px 6px; border: 0; border-top: 1px solid var(--rule); background: none; color: var(--ink); text-align: left; }
+.img-pass:hover { background: var(--white); }
+.img-time { font-weight: 600; font-variant-numeric: tabular-nums; }
+.img-utc, .img-sub { display: block; color: var(--ink-3); font-size: 12px; font-weight: 400; }
+.img-sat { font-weight: 600; min-width: 0; }
+.img-sat .img-sub { margin-top: 2px; color: var(--ink-2); }
+.img-verdict { font-size: 13px; font-weight: 600; text-align: right; white-space: nowrap; }
+.v-clear { color: var(--good); }
+.v-partly { color: var(--caution); }
+.v-cloudy { color: var(--warn); }
+.v-unknown { color: var(--ink-3); font-weight: 500; }
+.v-radar { color: #6b45b8; }
+.plain-list { margin: 8px 0 0; padding-left: 18px; color: var(--ink-2); font: 400 15px/1.5 var(--serif); }
+.plain-list li + li { margin-top: 6px; }
+@media (max-width: 760px) {
+  .img-pass { grid-template-columns: 50px minmax(0, 1fr); row-gap: 4px; }
+  .img-verdict { grid-column: 2; text-align: left; }
+  .img-verdict .img-sub { display: inline; margin-left: 8px; }
+  .learn .tabs { overflow-x: auto; scrollbar-width: none; }
+  .learn .tabs .tab { flex: none; }
+}

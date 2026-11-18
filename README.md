@@ -1,5 +1,7 @@
 # Cenit
-Live satellite tracker and preliminary mission analysis tool: size new small satellites and scope aerly-phase debris removal missions
+
+Real-time 3D tracker for active satellites in orbit, using data from [CelesTrak](https://celestrak.org). The name comes from the Spanish for *zenith*, the point of the sky directly above the observer.
+
 ## Run locally
 
 You need Node.js 20 or later.
@@ -72,6 +74,7 @@ The **Analysis** panel works on whole groups of objects:
 The **Missions** panel turns the app into a design tool:
 
 - **Design a satellite**: three steps (mission, spacecraft, results). It recommends an orbit with the reasons (sun-synchronous with a node time for imaging, dawn-dusk for science, an inclination matched to the region for communications) and sizes the rest around it: coverage of the region, solar array and battery for the worst eclipse of the year, daily contacts and data volume with your ground station, orbital lifetime with NOAA's solar cycle forecast, the 5-year deorbit rule and the drag sail it would need, the Δv and propellant budget, and how crowded the altitude is. **Launch it to the globe** adds it to the catalog as a virtual satellite, with the full dossier like any real one. Your satellites are kept in this browser.
+- **Earth imaging**: when Sentinel-2, Landsat 8/9, Sentinel-1 and Sentinel-3 can image a place over the next 15 days, using each instrument's real swath, with the off-nadir angle, daylight for optical sensors and the cloud forecast from Open-Meteo for the time of each pass. Tap a pass to see it on the globe; links lead to the free archives (Copernicus Browser, USGS EarthExplorer).
 - **Debris removal**: plan a chaser that visits up to six objects and fits a deorbit kit to each. It ranks the objects worth removing (long-lived and in crowded shells), tries every visiting order and uses J2 to align the planes for free when the wait is acceptable. It reports Δv, duration, launch mass and whether the mission is realistic. The targets are drawn in orange on the globe.
 
 **Fundamentals** now has seventeen notes, most with an exercise built from live catalog data that checks your answer and shows the worked solution.
@@ -119,6 +122,8 @@ three.js: points are interpolated on the GPU between two epochs → smooth 60 fp
 | `src/lib/url.ts` | Shareable links |
 | `src/lib/missionDesign.ts` | Orbit recommendation, SSO, solar sizing, lifetime, Δv and debris budget |
 | `src/lib/debrisRemoval.ts` | Plane angles, J2 phasing, tour optimization and chaser mass |
+| `src/lib/earthImaging.ts` | Earth observation satellites, swaths, cloud forecast |
+| `src/workers/overpass.worker.ts` | Imaging passes over a point, off the main thread |
 | `src/lib/astroPhoto.ts` | Deep-sky targets, precession and the camera frame |
 | `src/workers/trails.worker.ts` | Satellite crossings through a photo frame, off the main thread |
 | `src/lib/imagery.ts` | Tile imagery providers (day and night) |
