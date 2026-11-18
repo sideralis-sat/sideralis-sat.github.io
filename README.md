@@ -1,6 +1,8 @@
-# Cenit
+# Zenith
 
-Real-time 3D tracker for active satellites in orbit, using data from [CelesTrak](https://celestrak.org). The name comes from the Spanish for *zenith*, the point of the sky directly above the observer.
+Live satellite tracker and first-order mission analysis tool for new small satellites, Earth imaging and early-phase debris removal studies, using public orbital data from [CelesTrak](https://celestrak.org). Results are preliminary estimates, not operational products.
+
+The zenith is the point of the sky directly above the observer.
 
 ## Run locally
 

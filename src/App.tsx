@@ -510,14 +510,12 @@ export default function App() {
 
       <header className="topbar" ref={topbarRef}>
         <div className="brand">
-          <svg className="brand-mark" width="26" height="26" viewBox="0 0 64 64" aria-hidden>
-            <rect x="27" y="26" width="10" height="30" rx="1.5" fill="currentColor" />
-            <circle cx="32" cy="13" r="7" fill="var(--zenith)" />
-          </svg>
+          {/* Insignia: el parche bordado de la misión */}
+          <img className="brand-mark" src={`${import.meta.env.BASE_URL}brand-patch.png`} width="30" height="30" alt="" />
           {/* Logotipo: el punto de la «i» es el cénit, un satélite en la vertical del trazo */}
           <span className="brand-name" role="img" aria-label={APP_NAME}>
             <span aria-hidden>
-              Cen<span className="brand-i">ı</span>t
+              Zen<span className="brand-i">ı</span>th
             </span>
           </span>
         </div>
