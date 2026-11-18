@@ -1,7 +1,5 @@
 # Cenit
-
-Real-time 3D tracker for active satellites in orbit, using data from [CelesTrak](https://celestrak.org). The name comes from the Spanish for *zenith*, the point of the sky directly above the observer.
-
+Live satellite tracker and preliminary mission analysis tool: size new small satellites and scope aerly-phase debris removal missions
 ## Run locally
 
 You need Node.js 20 or later.
