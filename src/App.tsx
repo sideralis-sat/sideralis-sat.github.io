@@ -610,6 +610,7 @@ export default function App() {
           />
           <FilterMenu
             label="Orbital regime"
+            shortLabel="Orbits"
             options={orbitOptions}
             hidden={hiddenOrbits}
             onToggle={(id) => setHiddenOrbits((s) => toggleIn(s, id))}

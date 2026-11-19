@@ -21,13 +21,23 @@ interface Props {
   footer?: ReactNode
   /** Sin «Mostrar/Ocultar todo» ni recuentos (p. ej. capas) */
   simple?: boolean
+  /** Nombre corto para pantallas estrechas */
+  shortLabel?: string
 }
 
-export function FilterMenu({ label, options, hidden, onToggle, onSetAll, onSolo, footer, simple }: Props) {
+export function FilterMenu({ label, options, hidden, onToggle, onSetAll, onSolo, footer, simple, shortLabel }: Props) {
   const [open, setOpen] = useState(false)
   const wrap = useRef<HTMLDivElement>(null)
   const shownCount = options.filter((o) => !hidden.has(o.id)).length
   const partial = shownCount < options.length
+
+  // La barra de filtros sube por encima del resto mientras hay un menú abierto (sin depender de :has)
+  useEffect(() => {
+    const bar = wrap.current?.closest('.filters')
+    if (!bar) return
+    bar.classList.toggle('has-open', open)
+    return () => bar.classList.remove('has-open')
+  }, [open])
 
   useEffect(() => {
     if (!open) return
@@ -56,7 +66,8 @@ export function FilterMenu({ label, options, hidden, onToggle, onSetAll, onSolo,
         aria-haspopup="true"
         onClick={() => setOpen((o) => !o)}
       >
-        {label}
+        <span className="chip-long">{label}</span>
+        <span className="chip-short">{shortLabel ?? label}</span>
         {partial && !simple && (
           <span className="chip-badge">
             {shownCount}/{options.length}

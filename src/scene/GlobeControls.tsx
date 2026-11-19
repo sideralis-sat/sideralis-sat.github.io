@@ -35,6 +35,13 @@ const HOME_RANGE = 3.6
 const INTRO_RANGE = 12
 const MAX_TILT = THREE.MathUtils.degToRad(80)
 const MIN_CAMERA_ALT = 0.0015
+/**
+ * Con el dedo, la Tierra gira solo esta fracción de lo que se arrastra: con el ratón se
+ * «agarra» el suelo y va pegado al cursor, pero en una pantalla pequeña eso resulta brusco.
+ */
+const TOUCH_GAIN = 0.55
+/** Y la inercia al soltar, esta fracción de la del ratón */
+const TOUCH_INERTIA = 0.45
 const WORLD_NORTH = new THREE.Vector3(0, 1, 0)
 
 interface CamState {
@@ -265,8 +272,10 @@ export function GlobeControls({ clock, mode, request, follow, onStopFollow }: Pr
     }
 
     let downAt = { x: 0, y: 0 }
+    let touch = false
     const onDown = (e: PointerEvent) => {
       downAt = { x: e.clientX, y: e.clientY }
+      touch = e.pointerType === 'touch'
       el.setPointerCapture(e.pointerId)
       pointers.set(e.pointerId, { x: e.clientX, y: e.clientY })
       stopMotion()
@@ -293,13 +302,23 @@ export function GlobeControls({ clock, mode, request, follow, onStopFollow }: Pr
       const dy = e.clientY - last.y
       const dt = Math.max(1, now - last.t)
 
-      if (mode === 'grab' && grabbedLocal) {
+      if (mode === 'grab' && grabbedLocal && touch) {
+        // Dedo: giro incremental entre la posición anterior y la actual, atenuado
+        applyCamera()
+        const from = hit(last.x, last.y)
+        const to = hit(e.clientX, e.clientY)
+        if (from && to) {
+          const q = new THREE.Quaternion().slerp(new THREE.Quaternion().setFromUnitVectors(to, from), TOUCH_GAIN)
+          rotateRig(q)
+          lastQ = { q, dt }
+        } else mode = 'spin'
+      } else if (mode === 'grab' && grabbedLocal) {
         const q = regrab(e.clientX, e.clientY, toWorld(grabbedLocal))
         if (q) lastQ = { q, dt }
         else mode = 'spin' // el cursor ha salido del globo
       } else if (mode === 'spin') {
         // Fuera del globo: giro proporcional al desplazamiento
-        const k = (0.0035 * Math.min(st.range + 0.3, 4)) / 4
+        const k = ((0.0035 * Math.min(st.range + 0.3, 4)) / 4) * (touch ? TOUCH_GAIN : 1)
         const right = new THREE.Vector3().crossVectors(st.up, st.T).normalize()
         const q = new THREE.Quaternion()
           .setFromAxisAngle(st.up, -dx * k)
@@ -372,7 +391,7 @@ export function GlobeControls({ clock, mode, request, follow, onStopFollow }: Pr
         const angle = 2 * Math.acos(THREE.MathUtils.clamp(lastQ.q.w, -1, 1))
         if (angle > 1e-4) {
           const s = Math.sqrt(1 - lastQ.q.w * lastQ.q.w) || 1
-          inertia.current = { axis: new THREE.Vector3(lastQ.q.x / s, lastQ.q.y / s, lastQ.q.z / s), rate: angle / lastQ.dt }
+          inertia.current = { axis: new THREE.Vector3(lastQ.q.x / s, lastQ.q.y / s, lastQ.q.z / s), rate: (angle / lastQ.dt) * (touch ? TOUCH_INERTIA : 1) }
         }
       }
       mode = 'none'

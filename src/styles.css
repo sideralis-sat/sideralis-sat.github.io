@@ -285,7 +285,7 @@ kbd { font: 12px var(--sans); padding: 0 4px; border: 1px solid currentColor; bo
   left: -8px;
   z-index: 5;
   width: 340px;
-  max-height: calc(100dvh - 140px);
+  max-height: calc(100vh - 140px); max-height: calc(100dvh - 140px);
   overflow-y: auto;
   padding: 6px;
   background: var(--paper);
@@ -763,13 +763,14 @@ tr.explain td { padding: 4px 0 16px; border-top: 0; text-align: left; white-spac
   .time-golive { padding: 0 7px 0 6px; }
   .time-readout time { font-size: 13px; }
   .time-zone, .time-date { display: none; }
-  .filters { top: calc(var(--top) + 2px); left: 12px !important; right: 12px; gap: 16px; overflow-x: auto; scrollbar-width: none; }
+  .filters { top: calc(var(--top) + 2px); left: 12px !important; right: 12px; gap: 14px; }
+
   .filter { position: static; }
-  .menu { position: fixed; top: calc(var(--top) + 40px); left: 10px; right: 10px; width: auto; max-height: 60dvh; }
+  .menu { position: fixed; top: calc(var(--top) + 40px); left: 10px; right: 10px; width: auto; max-height: 60vh; max-height: 60dvh; }
   .hud-cell:not(:nth-child(2)) { display: none; }
   .nav-stack { display: none; }
   .has-panel .nav { display: none; }
-  .dossier { top: auto; bottom: 0; left: 0; width: 100%; height: 56dvh; border-top-width: 3px; }
+  .dossier { top: auto; bottom: 0; left: 0; width: 100%; height: 56vh; height: 56dvh; border-top-width: 3px; }
   .ds-head { padding: 16px 18px 10px; }
   .ds-name { font-size: 28px; }
   .ds-dek { font-size: 16px; }
@@ -779,10 +780,10 @@ tr.explain td { padding: 4px 0 16px; border-top: 0; text-align: left; white-spac
   .learn-body { padding: 4px 20px 32px; }
   .hint-card { left: 12px; bottom: calc(var(--hud) + 72px); }
   .pass { grid-template-columns: 78px 42px 36px 58px 1fr auto; font-size: 13px; }
-  .sky-side { top: auto; height: 46dvh; width: 100%; border-top-width: 3px; }
+  .sky-side { top: auto; height: 46vh; height: 46dvh; width: 100%; border-top-width: 3px; }
   .sky-side-body { padding: 14px 18px 28px; }
   .sky-title { font-size: 24px; }
-  .sky-stage { left: 0; right: 0 !important; top: calc(var(--top) + 34px); bottom: 46dvh; }
+  .sky-stage { left: 0; right: 0 !important; top: calc(var(--top) + 34px); bottom: 46vh; bottom: 46dvh; }
 }
 
 /* ——— Maniobras ——— */
@@ -962,6 +963,7 @@ table.cmp thead th { padding: 4px 0; text-align: right; }
 .menu-list li:hover .menu-only, .menu-only:focus-visible { opacity: 1; }
 .menu-list li .menu-only:hover { text-decoration: underline; }
 .menu-backdrop, .menu-head { display: none; }
+.chip-short { display: none; }
 
 /* ——— Navegación inferior (solo móvil) y elementos de la hoja de la ficha ——— */
 .ds-grab, .ds-peek-actions, .ds-min { display: none; }
@@ -999,8 +1001,8 @@ table.cmp thead th { padding: 4px 0; text-align: right; }
 .has-learn .empty-pill { left: calc(50% + (var(--rail) + var(--learn)) / 2); }
 
 /* ——— Bienvenida ——— */
-.welcome-backdrop { position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(3, 5, 12, 0.62); }
-.welcome { position: relative; width: min(560px, 100%); max-height: calc(100dvh - 32px); overflow-y: auto; padding: 28px 28px 22px; border-top: 4px solid var(--yellow); border-radius: 0 0 6px 6px; }
+.welcome-backdrop { position: fixed; top: 0; left: 0; right: 0; bottom: 0; z-index: 40; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(3, 5, 12, 0.62); }
+.welcome { position: relative; width: min(560px, 100%); max-height: calc(100vh - 32px); max-height: calc(100dvh - 32px); overflow-y: auto; padding: 28px 28px 22px; border-top: 4px solid var(--yellow); border-radius: 0 0 6px 6px; }
 .welcome-close { position: absolute; top: 14px; right: 14px; }
 .welcome-title { margin: 0 40px 10px 0; font: 600 30px/1.1 var(--serif); letter-spacing: -0.01em; }
 .welcome-lead { margin: 0 0 14px; color: var(--ink-2); font: 400 17px/1.5 var(--serif); }
@@ -1036,15 +1038,17 @@ table.cmp thead th { padding: 4px 0; text-align: right; }
   .hud { bottom: var(--mnav); }
   .nav { bottom: calc(var(--mnav) + var(--hud) + 12px); }
   .learn { bottom: var(--mnav); border-radius: 0; }
-  .sky-side { bottom: var(--mnav); height: 44dvh; }
-  .sky-stage { bottom: calc(44dvh + var(--mnav)); }
+  .sky-side { bottom: var(--mnav); height: 44vh; height: 44dvh; }
+  .sky-stage { bottom: calc(44vh + var(--mnav)); bottom: calc(44dvh + var(--mnav)); }
   .empty-pill, .has-learn .empty-pill { left: 50%; bottom: calc(var(--mnav) + var(--hud) + 18px); }
   .picking-banner { bottom: calc(var(--mnav) + 12px); }
 
   /* Filtros: hoja inferior grande, con «Done» y fondo que se toca para cerrar */
-  .filters:has(.menu) { z-index: 35; }
-  .menu-backdrop { display: block; position: fixed; inset: 0; background: rgba(3, 5, 12, 0.55); z-index: 30; }
-  .menu { position: fixed; top: auto; left: 0; right: 0; bottom: 0; width: auto; max-height: 80dvh; padding: 0 8px calc(12px + env(safe-area-inset-bottom, 0px)); border-radius: 14px 14px 0 0; z-index: 31; }
+  .filters.has-open { z-index: 35; }
+  .chip .chip-long { display: none; }
+  .chip .chip-short { display: inline; }
+  .menu-backdrop { display: block; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(3, 5, 12, 0.55); z-index: 30; }
+  .menu { position: fixed; top: auto; left: 0; right: 0; bottom: 0; width: auto; max-height: calc(100% - 96px); max-height: 80dvh; overflow-y: auto; -webkit-overflow-scrolling: auto; padding: 0 8px calc(12px + env(safe-area-inset-bottom, 0px)); border-radius: 14px 14px 0 0; z-index: 31; }
   .menu-head { display: flex; align-items: center; gap: 10px; position: sticky; top: 0; padding: 14px 8px 10px; background: var(--paper); z-index: 1; }
   .menu-title { flex: 1; font: 600 21px/1.2 var(--serif); }
   .menu-x { display: none; }
@@ -1054,14 +1058,14 @@ table.cmp thead th { padding: 4px 0; text-align: right; }
   .menu-only { opacity: 1; padding: 8px 10px; font-size: 14px; }
 
   /* Ficha del satélite: hoja inferior que se despliega a pantalla completa */
-  .dossier { top: auto; left: 0; right: 0; width: 100%; bottom: var(--mnav); height: auto; max-height: calc(100dvh - var(--mnav)); border-radius: 14px 14px 0 0; border-top-width: 0; z-index: 6; box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5); }
+  .dossier { top: auto; left: 0; right: 0; width: 100%; bottom: var(--mnav); height: auto; max-height: calc(100vh - var(--mnav)); max-height: calc(100dvh - var(--mnav)); border-radius: 14px 14px 0 0; border-top-width: 0; z-index: 6; box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.5); }
   .ds-grab { display: flex; justify-content: center; align-items: center; width: calc(100% + 36px); height: 24px; margin: -12px -18px 4px; padding: 0; border: 0; background: none; touch-action: none; }
   .ds-grab span { width: 42px; height: 5px; border-radius: 3px; background: #b9c0cb; }
   .ds-head { touch-action: pan-x; }
   .ds-kicker { display: flex !important; font-size: 13px; padding-right: 40px; }
   .ds-name { font-size: 26px; padding-right: 40px; }
   .ds-close { top: 22px; right: 12px; }
-  .dossier.sheet-peek { max-height: 56dvh; }
+  .dossier.sheet-peek { max-height: 56vh; max-height: 56dvh; }
   .dossier.sheet-peek .tabs, .dossier.sheet-peek .subtabs, .dossier.sheet-peek .ds-body, .dossier.sheet-peek .ds-actions, .dossier.sheet-peek .ds-meta { display: none; }
   .dossier.sheet-peek .ds-peek-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
   .dossier.sheet-peek .ds-peek-actions .btn { height: 40px; }
@@ -1077,7 +1081,7 @@ table.cmp thead th { padding: 4px 0; text-align: right; }
 
   /* Bienvenida como hoja inferior */
   .welcome-backdrop { align-items: flex-end; padding: 0; }
-  .welcome { width: 100%; max-height: 92dvh; padding: 22px 20px calc(18px + env(safe-area-inset-bottom, 0px)); border-radius: 14px 14px 0 0; border-top-width: 0; }
+  .welcome { width: 100%; max-height: 92vh; max-height: 92dvh; padding: 22px 20px calc(18px + env(safe-area-inset-bottom, 0px)); border-radius: 14px 14px 0 0; border-top-width: 0; }
   .welcome-title { font-size: 26px; }
   .welcome-lead { font-size: 16px; }
 }
