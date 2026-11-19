@@ -75,9 +75,9 @@ The **Analysis** panel works on whole groups of objects:
 
 Zoom in towards the Earth and the satellites closest to the camera show their name, constellation colour and altitude, without overlapping one another. They fade out again when you zoom out. The labels can be turned off in **Layers → Names when zoomed in**.
 
-## On a phone
+## Navigation
 
-On small screens the sections move to a bottom bar with names (Globe, Sky, Missions, Analysis, Learn). A satellite opens as a sheet that shows the essentials over the globe; **Details** or a swipe up opens it full screen, and the arrow brings the globe back. Filters open as a large sheet with **Done**, **Show all** and **Only** for each group. First-time visitors get a short guide with five starting points; the **?** button brings it back.
+The sections (Globe, Sky, Missions, Analysis, Learn and Help) are always visible with their names: in a side bar on a computer and in a bottom bar on a phone. A satellite opens as a sheet that shows the essentials over the globe; **Details** or a swipe up opens it full screen, and the arrow brings the globe back. Filters open as a large sheet with **Done**, **Show all** and **Only** for each group. First-time visitors get a short guide with five starting points; **Help** brings it back.
 
 ## Missions
 

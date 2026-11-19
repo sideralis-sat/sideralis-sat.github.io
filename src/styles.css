@@ -33,6 +33,8 @@
   --hud: 30px;
   --side: 440px;
   --learn: 480px;
+  /* Barra lateral de secciones (ordenador); en móvil es 0 y la navegación va abajo */
+  --rail: 84px;
   color-scheme: dark;
 }
 
@@ -55,7 +57,7 @@ button:disabled { cursor: default; opacity: 0.4; }
 kbd { font: 12px var(--sans); padding: 0 4px; border: 1px solid currentColor; border-radius: 3px; opacity: 0.8; }
 
 .app { position: fixed; inset: 0; }
-.scene { position: absolute !important; inset: 0; touch-action: none; }
+.scene { position: absolute !important; inset: 0 0 0 var(--rail); width: auto !important; touch-action: none; }
 .is-picking .scene { cursor: crosshair; }
 
 /* ——— Controles sobre el espacio ——— */
@@ -97,7 +99,7 @@ kbd { font: 12px var(--sans); padding: 0 4px; border: 1px solid currentColor; bo
 .topbar {
   position: absolute;
   top: 0;
-  left: 0;
+  left: var(--rail);
   right: 0;
   height: var(--top-base);
   display: flex;
@@ -109,7 +111,7 @@ kbd { font: 12px var(--sans); padding: 0 4px; border: 1px solid currentColor; bo
 }
 /* Con las hojas abiertas, la barra ocupa solo el hueco que queda sobre el globo */
 .has-panel .topbar { right: var(--side); }
-.has-learn .topbar { left: var(--learn); }
+.has-learn .topbar { left: calc(var(--rail) + var(--learn)); }
 .has-learn .brand { display: none; }
 .has-panel .time-date, .has-panel .time-zone { display: none; }
 .has-panel .topbar { gap: 14px; }
@@ -255,8 +257,8 @@ kbd { font: 12px var(--sans); padding: 0 4px; border: 1px solid currentColor; bo
 .dot { flex: none; width: 8px; height: 8px; border-radius: 50%; }
 
 /* ——— Filtros y capas: texto con desplegable ——— */
-.filters { position: absolute; top: calc(var(--top) - 4px); left: 18px; display: flex; gap: 18px; z-index: 2; }
-.has-learn .filters { left: calc(var(--learn) + 18px); }
+.filters { position: absolute; top: calc(var(--top) - 4px); left: calc(var(--rail) + 18px); display: flex; gap: 18px; z-index: 2; }
+.has-learn .filters { left: calc(var(--rail) + var(--learn) + 18px); }
 .filter { position: relative; }
 .chip {
   display: inline-flex;
@@ -523,12 +525,12 @@ tr.explain td { padding: 4px 0 16px; border-top: 0; text-align: left; white-spac
 
 /* ——— Vista cenital ——— */
 .sky-view { position: absolute; inset: 0; z-index: 2; background: radial-gradient(120% 90% at 60% 50%, #0b1426 0%, #070b16 55%, var(--space) 100%); }
-.sky-side { position: absolute; top: 0; left: 0; bottom: 0; width: var(--learn); display: flex; flex-direction: column; border-top: 4px solid var(--yellow); z-index: 4; }
+.sky-side { position: absolute; top: 0; left: var(--rail); bottom: 0; width: var(--learn); display: flex; flex-direction: column; border-top: 4px solid var(--yellow); z-index: 4; }
 .sky-side-body { flex: 1; overflow-y: auto; padding: 20px 30px 40px; scrollbar-width: thin; scrollbar-color: var(--rule) transparent; }
 .sky-title { margin: 0; font: 600 30px/1.1 var(--serif); letter-spacing: -0.01em; }
 .sky-prompt p { margin: 0; }
 .sky-mode { margin-top: 16px; }
-.sky-stage { position: absolute; top: calc(var(--top) + 30px); bottom: var(--hud); left: var(--learn); right: 0; }
+.sky-stage { position: absolute; top: calc(var(--top) + 30px); bottom: var(--hud); left: calc(var(--rail) + var(--learn)); right: 0; }
 .has-panel .sky-stage { right: var(--side); }
 .sky-canvas { display: block; width: 100%; height: 100%; touch-action: manipulation; }
 .sky-list { list-style: none; margin: 0; padding: 0; }
@@ -554,7 +556,7 @@ tr.explain td { padding: 4px 0 16px; border-top: 0; text-align: left; white-spac
 .learn {
   position: absolute;
   top: 0;
-  left: 0;
+  left: var(--rail);
   bottom: 0;
   width: var(--learn);
   display: flex;
@@ -641,7 +643,7 @@ tr.explain td { padding: 4px 0 16px; border-top: 0; text-align: left; white-spac
 /* ——— Barra inferior: lecturas sobre el espacio ——— */
 .hud {
   position: absolute;
-  left: 0;
+  left: var(--rail);
   right: 0;
   bottom: 0;
   height: var(--hud);
@@ -655,7 +657,7 @@ tr.explain td { padding: 4px 0 16px; border-top: 0; text-align: left; white-spac
   z-index: 3;
 }
 .has-panel .hud { right: var(--side); }
-.has-learn .hud { left: var(--learn); }
+.has-learn .hud { left: calc(var(--rail) + var(--learn)); }
 .hud-cells { display: flex; gap: 20px; margin: 0; }
 .hud-cell { display: flex; gap: 6px; }
 .hud-cell dt { color: var(--on-dark-3); }
@@ -958,10 +960,23 @@ table.cmp thead th { padding: 4px 0; text-align: right; }
 .menu-list li .menu-item { flex: 1; min-width: 0; }
 .menu-only { flex: none; margin-left: 2px; padding: 4px 8px; border: 0; border-radius: 3px; background: none; color: var(--link); font-size: 12.5px; font-weight: 600; opacity: 0; }
 .menu-list li:hover .menu-only, .menu-only:focus-visible { opacity: 1; }
+.menu-list li .menu-only:hover { text-decoration: underline; }
 .menu-backdrop, .menu-head { display: none; }
 
 /* ——— Navegación inferior (solo móvil) y elementos de la hoja de la ficha ——— */
-.mnav, .ds-grab, .ds-peek-actions, .ds-min { display: none; }
+.ds-grab, .ds-peek-actions, .ds-min { display: none; }
+
+/* Barra lateral de secciones (ordenador): icono y nombre siempre visibles */
+.mnav { position: absolute; top: 0; left: 0; bottom: 0; width: var(--rail); display: flex; flex-direction: column; align-items: stretch; gap: 4px; padding: 12px 0 14px; background: rgba(6, 9, 18, 0.94); border-right: 1px solid var(--dark-line); z-index: 6; }
+.mnav-mark { align-self: center; margin-bottom: 10px; border-radius: 50%; }
+.mnav-item { display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 5px; height: 62px; margin: 0 8px; border: 0; border-radius: 8px; background: none; color: var(--on-dark-2); font-size: 12px; font-weight: 600; }
+.mnav-item svg { width: 22px; height: 22px; }
+.mnav-item:hover { color: var(--on-dark); background: rgba(237, 240, 244, 0.07); }
+.mnav-item.is-on { color: var(--yellow); background: rgba(242, 182, 0, 0.12); }
+.mnav-help { margin-top: auto; }
+/* Las secciones ya están en la barra lateral: fuera de la barra superior */
+.topbar .learn-btn, .topbar .view-toggle, .topbar .brand-mark { display: none; }
+.menu-only { opacity: 0.6; }
 
 /* Sin nada a la vista */
 .empty-pill {
@@ -981,7 +996,7 @@ table.cmp thead th { padding: 4px 0; text-align: right; }
   z-index: 3;
   white-space: nowrap;
 }
-.has-learn .empty-pill { left: calc(50% + var(--learn) / 2); }
+.has-learn .empty-pill { left: calc(50% + (var(--rail) + var(--learn)) / 2); }
 
 /* ——— Bienvenida ——— */
 .welcome-backdrop { position: fixed; inset: 0; z-index: 40; display: flex; align-items: center; justify-content: center; padding: 16px; background: rgba(3, 5, 12, 0.62); }
@@ -1001,15 +1016,21 @@ table.cmp thead th { padding: 4px 0; text-align: right; }
 .welcome-explore { width: 100%; justify-content: center; margin-top: 14px; }
 
 @media (max-width: 760px) {
-  :root { --mnav: calc(60px + env(safe-area-inset-bottom, 0px)); }
+  :root { --mnav: calc(60px + env(safe-area-inset-bottom, 0px)); --rail: 0px; }
 
   /* Barra inferior con las secciones, con nombre además de icono */
-  .mnav { display: flex; position: fixed; left: 0; right: 0; bottom: 0; height: var(--mnav); padding-bottom: env(safe-area-inset-bottom, 0px); background: rgba(8, 11, 22, 0.97); border-top: 1px solid var(--dark-line); z-index: 20; }
+  .mnav { display: flex; flex-direction: row; position: fixed; top: auto; left: 0; right: 0; bottom: 0; width: auto; height: var(--mnav); gap: 0; padding: 0 0 env(safe-area-inset-bottom, 0px); background: rgba(8, 11, 22, 0.97); border-top: 1px solid var(--dark-line); border-right: 0; z-index: 20; }
+  .mnav-mark { display: none; }
+  .mnav-help { margin-top: 0; }
+  .mnav-item { height: auto; margin: 0; border-radius: 0; }
+  .mnav-item:hover { background: none; }
+  .mnav-item.is-on { background: none; }
+  .topbar .brand-mark { display: block; }
   .mnav-item { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; min-width: 0; border: 0; background: none; color: var(--on-dark-3); font-size: 11.5px; font-weight: 600; }
   .mnav-item svg { width: 22px; height: 22px; }
   .mnav-item.is-on { color: var(--yellow); }
-  .topbar .learn-btn:not(.guide-btn), .topbar .view-toggle { display: none; }
-  .topbar .guide-btn { order: 4; }
+  .topbar .view-toggle { display: none; }
+
 
   /* Todo lo que va abajo queda por encima de la barra */
   .hud { bottom: var(--mnav); }
@@ -1062,7 +1083,7 @@ table.cmp thead th { padding: 4px 0; text-align: right; }
 }
 
 /* ——— Nombres de los satélites al acercarse ——— */
-.sat-labels { position: absolute; inset: 0; overflow: hidden; pointer-events: none; z-index: 1; }
+.sat-labels { position: absolute; inset: 0 0 0 var(--rail); overflow: hidden; pointer-events: none; z-index: 1; }
 .sat-label { position: absolute; top: 0; left: 0; display: grid; grid-template-columns: auto auto; column-gap: 6px; align-items: center; padding: 3px 7px 3px 6px; border-radius: 4px; background: rgba(6, 9, 18, 0.72); color: var(--on-dark); font-size: 12px; line-height: 1.25; white-space: nowrap; will-change: transform; }
 .sat-label i { grid-row: span 2; width: 7px; height: 7px; border-radius: 50%; }
 .sat-label b { font-weight: 600; }

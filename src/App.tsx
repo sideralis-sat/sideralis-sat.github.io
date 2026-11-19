@@ -38,7 +38,7 @@ import { SatLabels } from './scene/SatLabels'
 import { Welcome, type WelcomeAction } from './ui/Welcome'
 import { FrameToggle } from './ui/FrameToggle'
 import { Hud } from './ui/Hud'
-import { BookIcon, ChartIcon, GlobeIcon, RocketIcon, ZenithIcon, HelpIcon } from './ui/icons'
+import { BookIcon, ChartIcon, GlobeIcon, RocketIcon, ZenithIcon } from './ui/icons'
 import { APP_NAME } from './brand'
 import { LearnDrawer } from './ui/learn/LearnDrawer'
 import type { LearnActions } from './ui/learn/lessons'
@@ -582,9 +582,6 @@ export default function App() {
           <span className="learn-label">Missions</span>
         </button>
         {catalog && index && <SearchBox satellites={catalog.satellites} groupIndex={index.groupIndex} onSelect={selectAndCenter} />}
-        <button className="learn-btn guide-btn" aria-label="Getting started" title="Getting started" onClick={() => setWelcome(true)}>
-          <HelpIcon />
-        </button>
         <div className="topbar-right">
           <div className="seg view-toggle" role="radiogroup" aria-label="View">
             <button className="seg-btn text" role="radio" aria-checked={view === 'globe'} onClick={() => setView('globe')} title="3D globe" aria-label="Globe">
@@ -772,6 +769,7 @@ export default function App() {
           if (d === 'missions' && drawer !== 'missions') setMissionTab('design')
           toggleDrawer(d)
         }}
+        onHelp={() => setWelcome(true)}
       />
       {welcome && <Welcome onClose={closeWelcome} onAction={onWelcome} />}
 
