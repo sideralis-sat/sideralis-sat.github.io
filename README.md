@@ -1,8 +1,8 @@
-# Zenith
+# Sideralis
 
 Live satellite tracker and first-order mission analysis tool for new small satellites, Earth imaging and early-phase debris removal studies, using public orbital data from [CelesTrak](https://celestrak.org). Results are preliminary estimates, not operational products.
 
-The zenith is the point of the sky directly above the observer.
+The name is Latin for "of the stars" and the root of sidereal time, the rotation of the Earth measured against the stars: the angle that turns the inertial frame where orbits are computed into the Earth-fixed frame where we live.
 
 ## Run locally
 
@@ -118,7 +118,7 @@ three.js: points are interpolated on the GPU between two epochs → smooth 60 fp
 | `src/workers/propagator.worker.ts` | SGP4 propagation off the main thread |
 | `src/lib/positionStream.ts` | Requests positions ahead of time and picks the epochs to interpolate between |
 | `src/lib/clock.ts` | Simulation clock (pause, speed up, run backwards) |
-| `src/lib/astro.ts` | Sidereal time and Sun direction |
+| `src/lib/astro.ts` | Sideralis time and Sun direction |
 | `src/lib/orbit.ts` | Orbital regime (LEO/MEO/GEO/HEO) |
 | `src/lib/astrodynamics.ts` | RV2COE, mean elements, β, eclipse, J2 drifts |
 | `src/lib/frame.ts` | ECEF/ECI frames and the GMST rotation |

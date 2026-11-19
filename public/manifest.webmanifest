@@ -1,6 +1,6 @@
 {
-  "name": "Zenith: live satellite tracking",
-  "short_name": "Zenith",
+  "name": "Sideralis: live satellite tracking",
+  "short_name": "Sideralis",
   "description": "Live satellite tracker and preliminary mission analysis tool.",
   "start_url": ".",
   "scope": ".",

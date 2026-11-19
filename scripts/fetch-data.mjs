@@ -39,7 +39,7 @@ const GROUPS_FILE = join(ROOT, 'src', 'data', 'constellations.json')
 
 const BASE_URL = 'https://celestrak.org/NORAD/elements/gp.php'
 const MAX_AGE_MS = 2 * 60 * 60 * 1000
-const USER_AGENT = 'Zenith-satellite-tracker/0.5 (proyecto personal educativo)'
+const USER_AGENT = 'Sideralis-satellite-tracker/0.6 (proyecto personal educativo)'
 
 const args = new Set(process.argv.slice(2))
 const SOFT = args.has('--soft')

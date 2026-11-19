@@ -544,10 +544,10 @@ export default function App() {
         <div className="brand">
           {/* Insignia: el parche bordado de la misión */}
           <img className="brand-mark" src={`${import.meta.env.BASE_URL}brand-patch.png`} width="30" height="30" alt="" />
-          {/* Logotipo: el punto de la «i» es el cénit, un satélite en la vertical del trazo */}
+          {/* Logotipo: el nombre en la serif de la web, sin adornos */}
           <span className="brand-name" role="img" aria-label={APP_NAME}>
             <span aria-hidden>
-              Zen<span className="brand-i">ı</span>th
+              Sideralis
             </span>
           </span>
         </div>
