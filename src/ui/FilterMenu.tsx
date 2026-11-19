@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react'
-import { CheckIcon, ChevronIcon } from './icons'
+import { CheckIcon, ChevronIcon, CloseIcon } from './icons'
 import { count as fmtCount } from './format'
 
 export interface FilterOption {
@@ -65,8 +65,19 @@ export function FilterMenu({ label, options, hidden, onToggle, onSetAll, onSolo,
         <ChevronIcon />
       </button>
 
+      {/* En móvil el menú es una hoja inferior con fondo oscurecido: tocar fuera o «Done» la cierra */}
+      {open && <div className="menu-backdrop" onClick={() => setOpen(false)} aria-hidden />}
       {open && (
         <div className="menu" role="group" aria-label={label}>
+          <div className="menu-head">
+            <span className="menu-title">{label}</span>
+            <button className="btn small primary" onClick={() => setOpen(false)}>
+              Done
+            </button>
+            <button className="icon-btn menu-x" aria-label="Close" onClick={() => setOpen(false)}>
+              <CloseIcon />
+            </button>
+          </div>
           {!simple && <div className="menu-actions">
             <button className="link" onClick={() => onSetAll(true)} disabled={!partial}>
               Show all
@@ -97,6 +108,11 @@ export function FilterMenu({ label, options, hidden, onToggle, onSetAll, onSolo,
                     </span>
                     {o.count !== undefined && <span className="menu-item-count">{fmtCount(o.count)}</span>}
                   </button>
+                  {onSolo && (
+                    <button className="menu-only" onClick={() => onSolo(o.id)} title={`Show only ${o.label}`}>
+                      Only
+                    </button>
+                  )}
                 </li>
               )
             })}

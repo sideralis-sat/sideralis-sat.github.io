@@ -33,9 +33,12 @@ import { AnalysisDrawer } from './ui/analysis/AnalysisDrawer'
 import { MissionDrawer } from './ui/mission/MissionDrawer'
 import { Dossier, type DossierTab } from './ui/dossier/Dossier'
 import { FilterMenu, type FilterOption } from './ui/FilterMenu'
+import { MobileNav } from './ui/MobileNav'
+import { SatLabels } from './scene/SatLabels'
+import { Welcome, type WelcomeAction } from './ui/Welcome'
 import { FrameToggle } from './ui/FrameToggle'
 import { Hud } from './ui/Hud'
-import { BookIcon, ChartIcon, CloseIcon, GlobeIcon, RocketIcon, ZenithIcon } from './ui/icons'
+import { BookIcon, ChartIcon, GlobeIcon, RocketIcon, ZenithIcon, HelpIcon } from './ui/icons'
 import { APP_NAME } from './brand'
 import { LearnDrawer } from './ui/learn/LearnDrawer'
 import type { LearnActions } from './ui/learn/lessons'
@@ -55,6 +58,7 @@ const TARGET = '#ff8a3d'
 type CameraAction = CameraRequest extends infer R ? (R extends CameraRequest ? Omit<R, 'key'> : never) : never
 
 const LAYERS: FilterOption[] = [
+  { id: 'labels', label: 'Names when zoomed in', description: 'Name and altitude of the satellites close to the camera' },
   { id: 'orbit', label: 'Orbit', description: 'One revolution from the current epoch, in the active reference frame' },
   { id: 'track', label: 'Ground track', description: 'Half a revolution back and one and a half revolutions ahead' },
   { id: 'footprint', label: 'Coverage footprint', description: 'Region where the object is above the horizon (0° elevation mask)' },
@@ -154,23 +158,26 @@ export default function App() {
     [baseCatalog, missions],
   )
   const detailState = useDetailState()
-  const [hintClosed, setHintClosed] = useState(() => {
+  // Bienvenida: la primera vez que se entra, y siempre desde el botón de ayuda
+  const [welcome, setWelcome] = useState(() => {
     try {
-      return localStorage.getItem('cenit.hintClosed') === '1'
+      return localStorage.getItem('zenith.welcomed') !== '1' && !new URLSearchParams(location.search).has('sat')
     } catch {
-      return false
+      return true
     }
   })
-  const closeHint = () => {
-    setHintClosed(true)
+  const closeWelcome = () => {
+    setWelcome(false)
     try {
-      localStorage.setItem('cenit.hintClosed', '1')
+      localStorage.setItem('zenith.welcomed', '1')
     } catch {
       /* almacenamiento no disponible */
     }
   }
+  const [missionTab, setMissionTab] = useState<'design' | 'imaging' | 'removal'>('design')
   const inertial = useRef<THREE.Group | null>(null)
   const tooltip = useRef<HTMLDivElement>(null)
+  const labelLayer = useRef<HTMLDivElement>(null)
   const pickStart = useRef(0)
 
   const setStation = useCallback((s: Station) => {
@@ -387,6 +394,26 @@ export default function App() {
     [select, centerOn],
   )
 
+  const onWelcome = (a: WelcomeAction) => {
+    closeWelcome()
+    if (a === 'iss') {
+      setDrawer(null)
+      setView('globe')
+      const sats = catalog?.satellites ?? []
+      let i = sats.findIndex((r) => r.NORAD_CAT_ID === 25544)
+      if (i < 0) i = sats.findIndex((r) => /^ISS\b/.test(r.OBJECT_NAME))
+      if (i >= 0) selectAndCenter(i)
+    } else if (a === 'sky') setView('sky')
+    else if (a === 'learn') {
+      setView('globe')
+      setDrawer('learn')
+    } else {
+      setMissionTab(a === 'imaging' ? 'imaging' : 'design')
+      setView('globe')
+      setDrawer('missions')
+    }
+  }
+
   // Tras lanzar un satélite diseñado, se selecciona en cuanto entra en el catálogo
   useEffect(() => {
     if (pendingSelect === null || !catalog) return
@@ -504,9 +531,14 @@ export default function App() {
         {ready && compare !== null && layer('orbit') && <OrbitPath record={catalog.satellites[compare]} clock={clock} color={SECONDARY} mode={mode} />}
         {ready && layer('orbit') && targets.map((i) => <OrbitPath key={i} record={catalog.satellites[i]} clock={clock} color={TARGET} mode={mode} />)}
         {ready && <Picker frame={inertial} stream={stream} show={show} onPick={onPick} onHover={onHover} />}
+        {ready && layer('labels') && (
+          <SatLabels frame={inertial} stream={stream} show={show} satellites={catalog.satellites} groupIndex={index.groupIndex} layer={labelLayer} selected={selected} />
+        )}
         <GlobeControls clock={clock} mode={mode} request={cameraRequest} follow={followGetter} onStopFollow={() => setFollowing(false)} />
         <ViewShift active={!!selectedRecord} />
       </Canvas>
+      {/* Etiquetas de nombre al acercarse (las coloca SatLabels) */}
+      <div className="sat-labels" ref={labelLayer} aria-hidden hidden={view !== 'globe'} />
 
       <header className="topbar" ref={topbarRef}>
         <div className="brand">
@@ -537,11 +569,22 @@ export default function App() {
           <ChartIcon />
           <span className="learn-label">Analysis</span>
         </button>
-        <button className={`learn-btn ${missionsOpen ? 'is-on' : ''}`} aria-pressed={missionsOpen} aria-label="Missions" onClick={() => toggleDrawer('missions')}>
+        <button
+          className={`learn-btn ${missionsOpen ? 'is-on' : ''}`}
+          aria-pressed={missionsOpen}
+          aria-label="Missions"
+          onClick={() => {
+            if (!missionsOpen) setMissionTab('design')
+            toggleDrawer('missions')
+          }}
+        >
           <RocketIcon />
           <span className="learn-label">Missions</span>
         </button>
         {catalog && index && <SearchBox satellites={catalog.satellites} groupIndex={index.groupIndex} onSelect={selectAndCenter} />}
+        <button className="learn-btn guide-btn" aria-label="Getting started" title="Getting started" onClick={() => setWelcome(true)}>
+          <HelpIcon />
+        </button>
         <div className="topbar-right">
           <div className="seg view-toggle" role="radiogroup" aria-label="View">
             <button className="seg-btn text" role="radio" aria-checked={view === 'globe'} onClick={() => setView('globe')} title="3D globe" aria-label="Globe">
@@ -567,7 +610,6 @@ export default function App() {
             onToggle={(id) => setHiddenGroups((s) => toggleIn(s, id))}
             onSetAll={(v) => setHiddenGroups(v ? EMPTY : new Set(groupOptions.map((o) => o.id)))}
             onSolo={(id) => setHiddenGroups(new Set(groupOptions.map((o) => o.id).filter((g) => g !== id)))}
-            footer="Double-click to isolate a constellation."
           />
           <FilterMenu
             label="Orbital regime"
@@ -602,30 +644,33 @@ export default function App() {
         />
       )}
 
-      {!selectedRecord && state.kind === 'ready' && !drawer && view === 'globe' && !hintClosed && (
-        <aside className="hint-card">
-          <button className="icon-btn small hint-close" aria-label="Close this tip" title="Close this tip" onClick={closeHint}>
-            <CloseIcon />
+      {/* Sin nada a la vista: decirlo y ofrecer la salida, en vez de dejar un globo vacío */}
+      {state.kind === 'ready' && view === 'globe' && shown === 0 && (
+        <div className="empty-pill" role="status">
+          No satellites shown
+          <button
+            className="btn small primary"
+            onClick={() => {
+              setHiddenGroups(EMPTY)
+              setHiddenOrbits(EMPTY)
+            }}
+          >
+            Show all
           </button>
-          <p>
-            <strong>Select an object</strong> to open its state vector, orbital elements, contact windows, power budget and reentry
-            analysis.
-          </p>
-          <p>
-            Theory in <button className="link" onClick={() => setLearnOpen(true)}>Fundamentals</button>. Try “ISS” for a reference case.
-          </p>
-        </aside>
+        </div>
       )}
 
       <LearnDrawer open={learnOpen} onClose={() => setLearnOpen(false)} actions={learnActions} satellites={catalog?.satellites ?? null} clock={clock} />
       {catalog && index && missionsOpen && (
         <MissionDrawer
+          key={missionTab}
           onClose={() => setDrawer(null)}
           satellites={catalog.satellites}
           groupIndex={index.groupIndex}
           station={station}
           clock={clock}
           missions={missions}
+          initialTab={missionTab}
           onLaunch={(r) => {
             saveMissions([...missions, r])
             setPendingSelect(r.NORAD_CAT_ID)
@@ -714,6 +759,21 @@ export default function App() {
           }}
         />
       )}
+
+      <MobileNav
+        view={view}
+        drawer={drawer}
+        onGlobe={() => {
+          setDrawer(null)
+          setView('globe')
+        }}
+        onSky={() => setView('sky')}
+        onDrawer={(d) => {
+          if (d === 'missions' && drawer !== 'missions') setMissionTab('design')
+          toggleDrawer(d)
+        }}
+      />
+      {welcome && <Welcome onClose={closeWelcome} onAction={onWelcome} />}
 
       <div className="tooltip" ref={tooltip} hidden />
       <StatusOverlay state={state} />

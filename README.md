@@ -71,6 +71,14 @@ The **Analysis** panel works on whole groups of objects:
 - **Gabbard diagram**: apogee and perigee against period, the classic plot of a fragmentation cloud. The *Debris* group gathers the tracked fragments of Fengyun-1C, Iridium 33 and Cosmos 2251.
 - **Constellation geometry**: altitude against inclination, automatic detection of shells, number of planes, Walker pattern estimate, and right ascension of the node against argument of latitude for each shell.
 
+## Names when zoomed in
+
+Zoom in towards the Earth and the satellites closest to the camera show their name, constellation colour and altitude, without overlapping one another. They fade out again when you zoom out. The labels can be turned off in **Layers → Names when zoomed in**.
+
+## On a phone
+
+On small screens the sections move to a bottom bar with names (Globe, Sky, Missions, Analysis, Learn). A satellite opens as a sheet that shows the essentials over the globe; **Details** or a swipe up opens it full screen, and the arrow brings the globe back. Filters open as a large sheet with **Done**, **Show all** and **Only** for each group. First-time visitors get a short guide with five starting points; the **?** button brings it back.
+
 ## Missions
 
 The **Missions** panel turns the app into a design tool:

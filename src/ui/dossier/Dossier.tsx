@@ -1,4 +1,5 @@
 import { useContext, useEffect, useRef, useState, type CSSProperties } from 'react'
+import type React from 'react'
 import { DetailContext } from '../detail'
 import type { Constellation, SatRecord } from '../../data/types'
 import type { SimClock } from '../../lib/clock'
@@ -7,7 +8,7 @@ import { ORBIT_CLASSES, orbitElements } from '../../lib/orbit'
 import type { Station } from '../../lib/passes'
 import type { ReentryResult } from '../../lib/reentry'
 import { fx, latStr, lonStr } from '../format'
-import { CloseIcon, CopyIcon, FollowIcon, ShareIcon, TargetIcon } from '../icons'
+import { CloseIcon, CopyIcon, DownIcon, FollowIcon, ShareIcon, TargetIcon, UpIcon } from '../icons'
 import { CompareTab } from './CompareTab'
 import { ConjunctionsTab } from './ConjunctionsTab'
 import { EnergyTab } from './EnergyTab'
@@ -105,9 +106,34 @@ export function Dossier(p: Props) {
     }
   }
 
+  // En móvil la ficha es una hoja inferior: «peek» deja ver el globo con lo esencial y «full»
+  // ocupa la pantalla para leer con calma. Se cambia con el tirador, los botones o deslizando.
+  const [sheet, setSheet] = useState<'peek' | 'full'>('peek')
+  const swipeY = useRef<number | null>(null)
+  const onHeadDown = (e: React.PointerEvent) => {
+    swipeY.current = e.pointerType === 'touch' ? e.clientY : null
+  }
+  const onHeadUp = (e: React.PointerEvent) => {
+    if (swipeY.current === null) return
+    const dy = e.clientY - swipeY.current
+    swipeY.current = null
+    if (dy < -40) setSheet('full')
+    else if (dy > 50) {
+      if (sheet === 'full') setSheet('peek')
+      else p.onClose()
+    }
+  }
+
   return (
-    <aside className="panel dossier" aria-label={`Dossier for ${record.OBJECT_NAME}`}>
-      <header className="ds-head">
+    <aside className={`panel dossier sheet-${sheet}`} aria-label={`Dossier for ${record.OBJECT_NAME}`}>
+      <header className="ds-head" onPointerDown={onHeadDown} onPointerUp={onHeadUp}>
+        <button
+          className="ds-grab"
+          aria-label={sheet === 'peek' ? 'Show all the details' : 'Show the globe'}
+          onClick={() => setSheet(sheet === 'peek' ? 'full' : 'peek')}
+        >
+          <span />
+        </button>
         <p className="ds-kicker">
           <span className="ds-group" style={{ '--c': constellation.color } as CSSProperties}>
             {constellation.label}
@@ -163,6 +189,23 @@ export function Dossier(p: Props) {
             </button>
           </div>
         </div>
+        <div className="ds-peek-actions">
+          <button className="btn primary" onClick={() => setSheet('full')}>
+            <UpIcon />
+            Details
+          </button>
+          <button className="btn" onClick={p.onCenter}>
+            <TargetIcon />
+            Center
+          </button>
+          <button className="btn" aria-pressed={p.following} onClick={p.onFollow}>
+            <FollowIcon />
+            {p.following ? 'Following' : 'Follow'}
+          </button>
+        </div>
+        <button className="icon-btn ds-min" aria-label="Show the globe" title="Show the globe" onClick={() => setSheet('peek')}>
+          <DownIcon />
+        </button>
         <button className="icon-btn ds-close" aria-label="Close the dossier" onClick={p.onClose}>
           <CloseIcon />
         </button>

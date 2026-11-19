@@ -21,11 +21,13 @@ interface Props {
   onShowIndex: (i: number) => void
   targets: number[]
   onTargets: (t: number[]) => void
+  /** Pestaña con la que se abre (desde la bienvenida) */
+  initialTab?: 'design' | 'imaging' | 'removal'
 }
 
 /** Herramientas de misión: diseñar un satélite propio y planificar la retirada de basura */
 export function MissionDrawer(p: Props) {
-  const [tab, setTab] = useState<'design' | 'imaging' | 'removal'>('design')
+  const [tab, setTab] = useState<'design' | 'imaging' | 'removal'>(p.initialTab ?? 'design')
   const now = useSimNow(p.clock, 60_000)
   return (
     <aside className="panel learn analysis" aria-label="Missions">
