@@ -10,6 +10,8 @@
  *   a₁ = (r₁ + r_b)/2,  a₂ = (r₂ + r_b)/2, tres impulsos, TOF = π(√(a₁³/μ) + √(a₂³/μ))
  * Cambio de plano Δi combinado con un impulso (ley de los cosenos):
  *   Δv = √(v_a² + v_b² − 2 v_a v_b cos Δi)
+ * En Hohmann el Δi se reparte entre los dos impulsos de forma óptima (casi todo en el radio
+ * mayor, donde la nave va más despacio; un poco en el menor ahorra unas decenas de m/s).
  * Cambio de plano puro en órbita circular:  Δv = 2 v sen(Δi/2)
  * Ecuación de Tsiolkovsky:  Δv = I_sp g₀ ln(m₀/m_f)
  */
@@ -51,9 +53,35 @@ const vOn = (r: number, a: number) => Math.sqrt(MU * (2 / r - 1 / a))
 /** Impulso entre dos velocidades separadas un ángulo Δi */
 const combine = (va: number, vb: number, diDeg: number) => Math.sqrt(Math.max(0, va * va + vb * vb - 2 * va * vb * Math.cos(diDeg * DEG)))
 
+/** Mínimo de una función unimodal en [lo, hi] por sección áurea */
+function goldenMin(f: (x: number) => number, lo: number, hi: number, tol = 1e-7) {
+  const k = 0.381966011250105
+  let x1 = lo + k * (hi - lo)
+  let x2 = hi - k * (hi - lo)
+  let f1 = f(x1)
+  let f2 = f(x2)
+  while (hi - lo > tol) {
+    if (f1 < f2) {
+      hi = x2
+      x2 = x1
+      f2 = f1
+      x1 = lo + k * (hi - lo)
+      f1 = f(x1)
+    } else {
+      lo = x1
+      x1 = x2
+      f1 = f2
+      x2 = hi - k * (hi - lo)
+      f2 = f(x2)
+    }
+  }
+  return (lo + hi) / 2
+}
+
 /**
- * Hohmann con cambio de plano opcional, que se combina con el impulso dado en el radio
- * mayor (donde la velocidad es menor y girar el vector cuesta menos).
+ * Hohmann con cambio de plano opcional. El Δi se reparte entre los dos impulsos para que
+ * el Δv total sea mínimo: casi todo va en el radio mayor, donde la velocidad es menor y
+ * girar el vector cuesta menos.
  */
 export function hohmann(r1: number, r2: number, diDeg = 0): ManeuverPlan {
   const at = (r1 + r2) / 2
@@ -62,8 +90,12 @@ export function hohmann(r1: number, r2: number, diDeg = 0): ManeuverPlan {
   const vp = vOn(r1, at)
   const v2 = vCirc(r2)
   const va = vOn(r2, at)
-  const di1 = up ? 0 : diDeg
-  const di2 = up ? diDeg : 0
+  const cost = (x: number) => combine(v1, vp, x) + combine(va, v2, diDeg - x)
+  // Sin cambio de plano no hay nada que repartir; con él, Δi del primer impulso óptimo
+  let di1 = diDeg > 1e-9 ? goldenMin(cost, 0, diDeg) : 0
+  if (cost(0) <= cost(di1)) di1 = 0
+  if (cost(diDeg) < cost(di1)) di1 = diDeg
+  const di2 = diDeg - di1
   const dv1 = combine(v1, vp, di1)
   const dv2 = combine(va, v2, di2)
   const rHigh = Math.max(r1, r2)
@@ -80,21 +112,36 @@ export function hohmann(r1: number, r2: number, diDeg = 0): ManeuverPlan {
   }
 }
 
-/** Bielíptica: el cambio de plano se hace en r_b, el punto más lento de toda la maniobra */
+/**
+ * Bielíptica: el cambio de plano se hace sobre todo en r_b, el punto más lento de toda la
+ * maniobra; el resto, si compensa, en el impulso dado en el mayor de r₁ y r₂.
+ */
 export function biElliptic(r1: number, r2: number, rb: number, diDeg = 0): ManeuverPlan {
   rb = Math.max(rb, r1, r2)
   const a1 = (r1 + rb) / 2
   const a2 = (r2 + rb) / 2
-  const dv1 = Math.abs(vOn(r1, a1) - vCirc(r1))
-  const dv2 = combine(vOn(rb, a1), vOn(rb, a2), diDeg)
-  const dv3 = Math.abs(vOn(r2, a2) - vCirc(r2))
-  const plain = dv1 + Math.abs(vOn(rb, a2) - vOn(rb, a1)) + dv3
+  const highFirst = r1 > r2
+  const burns = (x: number) => {
+    const rest = diDeg - x
+    return [
+      combine(vCirc(r1), vOn(r1, a1), highFirst ? rest : 0),
+      combine(vOn(rb, a1), vOn(rb, a2), x),
+      combine(vOn(r2, a2), vCirc(r2), highFirst ? 0 : rest),
+    ]
+  }
+  const cost = (x: number) => burns(x).reduce((s, v) => s + v, 0)
+  let x = diDeg > 1e-9 ? goldenMin(cost, 0, diDeg) : 0
+  if (cost(diDeg) <= cost(x)) x = diDeg
+  if (cost(0) < cost(x)) x = 0
+  const [dv1, dv2, dv3] = burns(x)
+  const rest = diDeg - x
+  const plain = Math.abs(vOn(r1, a1) - vCirc(r1)) + Math.abs(vOn(rb, a2) - vOn(rb, a1)) + Math.abs(vOn(r2, a2) - vCirc(r2))
   return {
     kind: 'bielliptic',
     burns: [
-      { label: 'Departure burn', r: r1, dv: dv1, di: 0 },
-      { label: 'Intermediate apoapsis burn', r: rb, dv: dv2, di: diDeg },
-      { label: 'Circularization', r: r2, dv: dv3, di: 0 },
+      { label: 'Departure burn', r: r1, dv: dv1, di: highFirst ? rest : 0 },
+      { label: 'Intermediate apoapsis burn', r: rb, dv: dv2, di: x },
+      { label: 'Circularization', r: r2, dv: dv3, di: highFirst ? 0 : rest },
     ],
     legs: [
       { a: a1, e: (rb - r1) / (rb + r1), rFrom: r1, rTo: rb },
@@ -103,6 +150,44 @@ export function biElliptic(r1: number, r2: number, rb: number, diDeg = 0): Maneu
     dvTotal: dv1 + dv2 + dv3,
     tof: Math.PI * (Math.sqrt(a1 ** 3 / MU) + Math.sqrt(a2 ** 3 / MU)),
     dvSeparatePlane: plain + 2 * vCirc(Math.max(r1, r2)) * Math.sin((diDeg * DEG) / 2),
+  }
+}
+
+/** Umbrales clásicos de la relación de radios (solo válidos sin cambio de plano) */
+export const BIELLIPTIC_RATIO_MIN = 11.94
+export const BIELLIPTIC_RATIO_ANY = 15.58
+
+export interface TransferComparison {
+  hohmann: ManeuverPlan
+  bielliptic: ManeuverPlan
+  /** r_mayor / r_menor */
+  ratio: number
+  coplanar: boolean
+  /** Δv que ahorra la bielíptica frente a Hohmann (km/s; negativo si cuesta más) */
+  saving: number
+  /** Cuántas veces más dura la bielíptica */
+  timeFactor: number
+  cheaper: 'hohmann' | 'bielliptic'
+}
+
+/**
+ * Hohmann frente a bielíptica con la misma apoapsis intermedia que haya elegido el usuario.
+ * La regla de 11,94 / 15,58 sale de comparar las dos sin cambio de plano; con Δi > 0 la
+ * bielíptica hace el giro muy lejos, donde la nave va despacio, y puede ganar con
+ * relaciones de radios mucho menores. Por eso aquí se calcula siempre el caso concreto.
+ */
+export function compareTransfers(r1: number, r2: number, rb: number, diDeg = 0): TransferComparison {
+  const ho = hohmann(r1, r2, diDeg)
+  const bi = biElliptic(r1, r2, rb, diDeg)
+  const saving = ho.dvTotal - bi.dvTotal
+  return {
+    hohmann: ho,
+    bielliptic: bi,
+    ratio: Math.max(r1, r2) / Math.min(r1, r2),
+    coplanar: diDeg < 0.01,
+    saving,
+    timeFactor: bi.tof / ho.tof,
+    cheaper: saving > 0 ? 'bielliptic' : 'hohmann',
   }
 }
 

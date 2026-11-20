@@ -406,14 +406,17 @@ export const LESSONS: Lesson[] = [
         </p>
         <Tex block>{'a_t = \\frac{r_1 + r_2}{2},\\qquad \\Delta v_1 = \\sqrt{\\mu\\left(\\frac{2}{r_1}-\\frac{1}{a_t}\\right)} - \\sqrt{\\frac{\\mu}{r_1}},\\qquad TOF = \\pi\\sqrt{\\frac{a_t^3}{\\mu}}'}</Tex>
         <p>
-          From a 400 km orbit to GEO it costs 3.85 km/s and takes 5.3 hours. When the radius ratio exceeds 11.94, a three-burn{' '}
-          <strong>bi-elliptic transfer</strong> through a higher apoapsis can be cheaper, at the price of a much longer flight.
+          From a 400 km orbit to GEO it costs 3.85 km/s and takes 5.3 hours. Between orbits in the same plane, when the radius ratio exceeds
+          11.94, a three-burn <strong>bi-elliptic transfer</strong> through a higher apoapsis can be cheaper, at the price of a much longer
+          flight. With a plane change that threshold no longer holds: the bi-elliptic transfer turns the plane far out, where the spacecraft is
+          slow, and can win at much smaller ratios. From the ISS to GEO (ratio 6.2, 51.6° plane change) it saves about 190 m/s but takes about
+          ten times longer.
         </p>
         <p>Rotating the orbital plane is expensive, because the whole velocity vector has to turn:</p>
         <Tex block>{'\\Delta v_{\\text{plane}} = 2v\\sin\\frac{\\Delta i}{2}'}</Tex>
         <p>
-          That is why launches to GEO from Kourou (5°) need less Δv than from Cape Canaveral (28.5°), and why the plane change is merged into the
-          apogee burn, where v is lowest. Each Δv becomes propellant through the <strong>Tsiolkovsky equation</strong>:
+          That is why launches to GEO from Kourou (5°) need less Δv than from Cape Canaveral (28.5°), and why the plane change is merged mostly into
+          the apogee burn, where v is lowest (giving a few degrees to the perigee burn saves a little more). Each Δv becomes propellant through the <strong>Tsiolkovsky equation</strong>:
         </p>
         <Tex block>{'\\Delta v = I_{sp}\\,g_0\\ln\\frac{m_0}{m_f}'}</Tex>
       </>

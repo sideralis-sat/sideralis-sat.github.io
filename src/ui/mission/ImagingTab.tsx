@@ -97,7 +97,7 @@ export function ImagingTab(p: Props) {
         worker.current = null
       }
       const req: OverpassRequest = {
-        sats: available.map((im) => ({ imager: im.id, record: byNorad.get(im.norad)!, swathKm: im.swathKm })),
+        sats: available.map((im) => ({ imager: im.id, record: byNorad.get(im.norad)!, look: im.look })),
         lat: point.lat,
         lon: point.lon,
         t0,
@@ -350,7 +350,11 @@ export function ImagingTab(p: Props) {
             scenario and does not record on every pass. Sentinel-2A runs a reduced plan in its extended campaign. ESA publishes the exact
             acquisition plans.
           </li>
-          <li>The swath is taken as centred on the ground track. Sentinel-3 OLCI is tilted to the west, so its eastern edge is narrower.</li>
+          <li>
+            Sentinel-2 and Landsat image a strip centred on the ground track. Sentinel-1 radar looks sideways, to the right of its direction of
+            travel: it images a strip roughly 340 to 620 km from its track and never the track itself. Sentinel-3 OLCI is tilted west, so its
+            swath reaches about 950 km west of the track and 330 km east.
+          </li>
           <li>Cloud forecasts are good for 2 to 3 days, fair up to 5, and only indicative after that.</li>
           <li>Orbits come from the public catalog and are accurate to a few seconds over these {DAYS} days.</li>
         </ul>

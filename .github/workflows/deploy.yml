@@ -29,6 +29,10 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
+      # Pruebas de los cálculos (maniobras, J2, eclipses, vida orbital...). Si alguna falla,
+      # la web no se publica y sigue la versión anterior
+      - name: Probar los cálculos
+        run: npm test
       # Dirección pública de la web, para la vista previa de los enlaces (og:image necesita una URL absoluta)
       - id: pages
         uses: actions/configure-pages@v5

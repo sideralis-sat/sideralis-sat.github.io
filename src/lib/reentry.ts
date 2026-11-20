@@ -112,7 +112,8 @@ export interface ReentryResult {
 
 /**
  * Integra desde el instante de la maniobra hasta el suelo (o hasta `maxHours`).
- * Paso variable según la altitud: 10 s en órbita, 1 s por debajo de 150 km, 0,25 s abajo.
+ * Paso variable según la altitud: 10 s por encima de 200 km, 2 s hasta 150 km, 0,25 s en la
+ * entrada y 0,5 s en los últimos 30 km (ya en caída casi vertical y lenta).
  */
 export function simulateReentry(r0: V3, v0: V3, t0: number, bc: number, maxHours = 72, rho: DensityFn = density): ReentryResult {
   let r = r0

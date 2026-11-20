@@ -44,7 +44,7 @@ export function planeAngle(i1: number, raan1: number, i2: number, raan2: number)
 export interface Leg {
   from: number
   to: number
-  /** Δv transfiriendo directamente, con todo el cambio de plano (m/s) */
+  /** Δv transfiriendo directamente, con el cambio de plano (m/s) */
   dvDirect: number
   /** Δv esperando a que J2 alinee los nodos, y días de espera */
   dvDrift: number
@@ -151,6 +151,16 @@ export function rankCandidates(records: SatRecord[], pool: number[], bandCounts:
     out.push({ index: i, alt: (m.apogeeAlt + m.perigeeAlt) / 2, inc: m.i, lifetimeYears: life, neighbours, score: Math.min(life, 200) * neighbours })
   }
   return out.sort((a, b) => b.score - a.score)
+}
+
+/**
+ * Masa máxima de objeto que un kit puede desorbitar con su propio propulsante. El kit empuja
+ * al objetivo y a sí mismo; si una fracción f de su masa es propulsante:
+ *   Δv = I_sp g₀ ln((M + m_kit) / (M + m_kit − f·m_kit))   →   M = f·m_kit / (1 − e^(−Δv/(I_sp g₀))) − m_kit
+ */
+export function kitCapacityKg(kitKg: number, dvMs: number, isp: number, propFraction = 0.6) {
+  if (dvMs <= 0) return Infinity
+  return Math.max(0, (propFraction * kitKg) / (1 - Math.exp(-dvMs / (isp * G0))) - kitKg)
 }
 
 /** Δv que el kit debe dar para desorbitar cada objetivo (perigeo a 60 km) */

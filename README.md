@@ -17,6 +17,10 @@ npm run dev
 
 To only download the data: `npm run fetch-data`.
 
+## Tests
+
+`npm test` runs the calculation tests in `tests/` (Vitest): textbook cases such as Vallado's example 6-1 for the Hohmann transfer, the no-change case, the ISS → GEO plane change, the classic 11.94 / 15.58 bi-elliptic thresholds, J2 drift, sun-synchronous inclinations, eclipses, orbital lifetime, deorbit Δv, link budget, Doppler, DOP, precession, instrument swaths and the debris-removal mass budget. The publishing workflow runs them first and does not publish if any fails.
+
 ## Using the app
 
 **Navigation (Google Earth style)**
@@ -48,7 +52,7 @@ Clicking a satellite opens a dossier with eight tabs. Almost every value has a *
 | Orbit | Diagram to scale, osculating and mean elements, period, energy, angular momentum, J2 drifts, sun-synchronism, B*; SGP4 against a numerical integrator (two-body, J2, J2 + drag) with the difference in the RIC frame | RV2COE (Vallado), Kepler III, secular J2, Cowell with RK4 |
 | Power | Sunlight, penumbra and umbra timeline; β angle and its 120-day evolution; eclipse; solar array and battery sizing | Conical shadow, f_E = (1/π)·arccos(√(h²+2Rh)/((R+h)cos β)) |
 | Passes | Ground station, 48 h passes with AOS/TCA/LOS, sky plot, naked-eye visibility, Doppler, and a downlink budget (EIRP, free-space loss, G/T, C/N₀, E_b/N₀, margin and data volume per pass) | SEZ topocentric angles, f = f₀(1 − ρ̇/c), L_fs = 20 log(4πρf/c) |
-| Maneuver | Hohmann or bi-elliptic transfer to any circular orbit, plane change merged into the cheapest burn, time of flight, propellant mass with Tsiolkovsky, Edelbaum estimate for electric propulsion; the transfer is drawn on the globe | Curtis ch. 6, Δv = √(v₁² + v₂² − 2v₁v₂ cos Δi), Δv = I_sp g₀ ln(m₀/m_f) |
+| Maneuver | Hohmann or bi-elliptic transfer to any circular orbit, plane change split optimally between the burns, side-by-side comparison of both transfers (Δv, time, propellant), time of flight, propellant mass with Tsiolkovsky, Edelbaum estimate for electric propulsion; the transfer is drawn on the globe | Curtis ch. 6, Δv = √(v₁² + v₂² − 2v₁v₂ cos Δi), Δv = I_sp g₀ ln(m₀/m_f) |
 | Conjunctions | Screens the whole catalog for close approaches over 12, 24 or 72 h: TCA, miss distance, relative speed and RIC components; shows the encounter on the globe | Apsis filter, linear relative motion per step, safe time skipping, golden-section refinement on SGP4 |
 | Reentry | Live space weather (F10.7, Ap, Kp, solar cycle forecast), atmosphere model choice, lifetime under each scenario, deorbit burn and simulation down to the ground with impact point | King-Hele density driven by NOAA data, da/dt = −ρ√(μa)/BC, RK4 with J2 + drag |
 | Compare | Side-by-side table with a second object (drawn in blue), distance, relative velocity, angle between orbital planes and synodic period | ĥ₁·ĥ₂, 1/|1/T₁ − 1/T₂| |
@@ -84,8 +88,8 @@ The sections (Globe, Sky, Missions, Analysis, Learn and Help) are always visible
 The **Missions** panel turns the app into a design tool:
 
 - **Design a satellite**: three steps (mission, spacecraft, results). It recommends an orbit with the reasons (sun-synchronous with a node time for imaging, dawn-dusk for science, an inclination matched to the region for communications) and sizes the rest around it: coverage of the region, solar array and battery for the worst eclipse of the year, daily contacts and data volume with your ground station, orbital lifetime with NOAA's solar cycle forecast, the 5-year deorbit rule and the drag sail it would need, the Δv and propellant budget, and how crowded the altitude is. **Launch it to the globe** adds it to the catalog as a virtual satellite, with the full dossier like any real one. Your satellites are kept in this browser.
-- **Earth imaging**: when Sentinel-2, Landsat 8/9, Sentinel-1 and Sentinel-3 can image a place over the next 15 days, using each instrument's real swath, with the off-nadir angle, daylight for optical sensors and the cloud forecast from Open-Meteo for the time of each pass. Tap a pass to see it on the globe; links lead to the free archives (Copernicus Browser, USGS EarthExplorer).
-- **Debris removal**: plan a chaser that visits up to six objects and fits a deorbit kit to each. It ranks the objects worth removing (long-lived and in crowded shells), tries every visiting order and uses J2 to align the planes for free when the wait is acceptable. It reports Δv, duration, launch mass and whether the mission is realistic. The targets are drawn in orange on the globe.
+- **Earth imaging**: when Sentinel-2, Landsat 8/9, Sentinel-1 and Sentinel-3 can image a place over the next 15 days, using each instrument's real viewing geometry (Sentinel-1 radar looks sideways, Sentinel-3 OLCI is tilted west), with the off-nadir angle, daylight for optical sensors and the cloud forecast from Open-Meteo for the time of each pass. Tap a pass to see it on the globe; links lead to the free archives (Copernicus Browser, USGS EarthExplorer).
+- **Debris removal**: plan a chaser that visits up to six objects and fits a deorbit kit to each. It ranks the objects worth removing (long-lived and in crowded shells), tries every visiting order and uses J2 to align the planes for free when the wait is acceptable. It reports Δv, duration, launch mass, the heaviest object each kit can deorbit and whether the mission is realistic. The targets are drawn in orange on the globe.
 
 **Fundamentals** now has seventeen notes, most with an exercise built from live catalog data that checks your answer and shows the worked solution.
 
@@ -165,7 +169,7 @@ Edit `src/data/constellations.json`. Order is priority: a satellite that belongs
 
 ## Publishing on GitHub Pages
 
-The `.github/workflows/deploy.yml` workflow builds and publishes the site on every push to `main` and every 6 hours, downloading fresh CelesTrak and NOAA data on each run (neither is stored in the repository).
+The `.github/workflows/deploy.yml` workflow runs the tests, then builds and publishes the site on every push to `main` and every 6 hours, downloading fresh CelesTrak and NOAA data on each run (neither is stored in the repository).
 
 1. Push the project to a GitHub repository.
 2. In the repository: **Settings → Pages → Source: GitHub Actions**.

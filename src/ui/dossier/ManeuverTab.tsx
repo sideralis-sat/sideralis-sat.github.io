@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react'
 import type { SatRecord } from '../../data/types'
 import { meanElements, MU, RE, type Telemetry } from '../../lib/astrodynamics'
-import { biElliptic, G0, hohmann, planeChangeDv, propellant, transferPoints, type ManeuverPlan } from '../../lib/maneuvers'
+import { BIELLIPTIC_RATIO_ANY, BIELLIPTIC_RATIO_MIN, compareTransfers, G0, planeChangeDv, propellant, transferPoints, type ManeuverPlan } from '../../lib/maneuvers'
 import { TransferDiagram } from '../charts/TransferDiagram'
 import { tn } from '../Tex'
 import { duration, fx } from '../format'
@@ -51,10 +51,20 @@ export function ManeuverTab({ t, record, drawing, onDraw }: Props) {
   const r1 = RE + h1
   const r2 = RE + Math.max(150, h2)
   const di = Math.abs(i2 - mean.i)
-  const plan: ManeuverPlan = kind === 'hohmann' ? hohmann(r1, r2, di) : biElliptic(r1, r2, RE + hb, di)
-  const ho = kind === 'hohmann' ? plan : hohmann(r1, r2, di)
+  const cmp = compareTransfers(r1, r2, RE + Math.max(hb, h1, h2), di)
+  const plan: ManeuverPlan = kind === 'hohmann' ? cmp.hohmann : cmp.bielliptic
   const prop = propellant(plan.dvTotal, isp, dry)
-  const ratio = Math.max(r1, r2) / Math.min(r1, r2)
+  const propHo = propellant(cmp.hohmann.dvTotal, isp, dry)
+  const propBi = propellant(cmp.bielliptic.dvTotal, isp, dry)
+  const ratio = cmp.ratio
+  /** Velocidad en la apoapsis intermedia, donde la bielíptica gira el plano (km/s) */
+  const vAtRb = (() => {
+    const rb = cmp.bielliptic.legs[0].rTo
+    const a1 = cmp.bielliptic.legs[0].a
+    return Math.sqrt(MU * (2 / rb - 1 / a1))
+  })()
+  /** Nave hipotética del cálculo de propelente, en una frase */
+  const craft = `a hypothetical ${fx(dry, 0)} kg (dry) spacecraft with I_sp = ${isp} s`
   const leg = plan.legs[0]
   // Edelbaum: transferencia de empuje continuo bajo entre órbitas circulares con cambio de plano
   const v1 = Math.sqrt(MU / r1)
@@ -73,8 +83,9 @@ export function ManeuverTab({ t, record, drawing, onDraw }: Props) {
     <>
       <Lead short={<>How much Δv and propellant it takes to move this object to another orbit, with the transfer drawn to scale.</>}>
         Impulsive transfer from the current orbit, treated as circular at its mean altitude, to a circular target orbit. Each burn is
-        instantaneous; the plane change is merged into the burn at the higher radius, where orbital speed is lowest and turning the velocity
-        vector is cheapest.
+        instantaneous. The plane change is merged into the burns and split between them to minimise the total: almost all of it goes where
+        the spacecraft is slowest, because turning a slow velocity vector is cheap. The burn is assumed to happen at the node of the target
+        plane, so only the change in inclination counts.
       </Lead>
 
       {mean.e > 0.01 && <p className="callout">This orbit has e = {fx(mean.e, 3)}: the circular approximation uses its mean radius, so the numbers are indicative.</p>}
@@ -129,14 +140,12 @@ export function ManeuverTab({ t, record, drawing, onDraw }: Props) {
             </button>
           </div>
         </div>
-        {kind === 'bielliptic' && (
-          <div className="slider">
-            <label htmlFor="hb">
-              Intermediate apoapsis <strong>{fx(hb, 0)} km</strong>
-            </label>
-            <input id="hb" type="range" min={Math.max(h1, h2)} max={400_000} step={1000} value={Math.max(hb, h1, h2)} onChange={(e) => setHb(Number(e.target.value))} />
-          </div>
-        )}
+        <div className="slider">
+          <label htmlFor="hb">
+            Bi-elliptic intermediate apoapsis <strong>{fx(Math.max(hb, h1, h2), 0)} km</strong>
+          </label>
+          <input id="hb" type="range" min={Math.max(h1, h2)} max={400_000} step={1000} value={Math.max(hb, h1, h2)} onChange={(e) => setHb(Number(e.target.value))} />
+        </div>
       </section>
 
       <TransferDiagram plan={plan} />
@@ -151,7 +160,12 @@ export function ManeuverTab({ t, record, drawing, onDraw }: Props) {
             value={ms(b.dv)}
             unit="m/s"
             explain={
-              j === 0 && kind === 'hohmann'
+              b.di > 0.01
+                ? {
+                    text: <>Combined burn: the velocity changes magnitude and direction at once. By the law of cosines this costs much less than two separate burns.</>,
+                    tex: '\\Delta v = \\sqrt{v_a^2 + v_b^2 - 2\\,v_a v_b \\cos\\Delta i}',
+                  }
+                : j === 0 && kind === 'hohmann'
                 ? {
                     text: (
                       <>
@@ -162,12 +176,7 @@ export function ManeuverTab({ t, record, drawing, onDraw }: Props) {
                     tex: '\\Delta v_1 = \\sqrt{\\mu\\left(\\frac{2}{r_1} - \\frac{1}{a_t}\\right)} - \\sqrt{\\frac{\\mu}{r_1}},\\qquad a_t = \\frac{r_1 + r_2}{2}',
                     calc: `a_t = \\frac{${tn(r1, 0)} + ${tn(r2, 0)}}{2} = ${tn(leg.a, 0)}\\ \\text{km}`,
                   }
-                : b.di > 0.01
-                  ? {
-                      text: <>Combined burn: the velocity changes magnitude and direction at once. By the law of cosines this costs much less than two separate burns.</>,
-                      tex: '\\Delta v = \\sqrt{v_a^2 + v_b^2 - 2\\,v_a v_b \\cos\\Delta i}',
-                    }
-                  : undefined
+                : undefined
             }
           />
         ))}
@@ -196,19 +205,67 @@ export function ManeuverTab({ t, record, drawing, onDraw }: Props) {
         )}
         </Full>
       </Table>
-      <Full>
-      <p className="block-note">
-        Radius ratio r₂/r₁ = {fx(ratio, 2)}.{' '}
-        {ratio < 11.94
-          ? 'Below 11.94 the Hohmann transfer is always the cheaper two-impulse option.'
-          : ratio < 15.58
-            ? 'Between 11.94 and 15.58 a bi-elliptic transfer is cheaper only with a very high intermediate apoapsis.'
-            : 'Above 15.58 a bi-elliptic transfer beats Hohmann for any intermediate apoapsis above the target, at the cost of a much longer flight.'}
-        {kind === 'bielliptic' && ` Hohmann for comparison: ${ms(ho.dvTotal)} m/s in ${duration(ho.tof * 1000).slice(1)}.`}
-      </p>
-      </Full>
+      <section className="block">
+        <table className="data cmp">
+          <caption>Hohmann or bi-elliptic?</caption>
+          <thead>
+            <tr>
+              <th />
+              <th>Hohmann</th>
+              <th>Bi-elliptic</th>
+              <th />
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <th scope="row">Total Δv</th>
+              <td className={cmp.cheaper === 'hohmann' ? 'tone-active' : undefined}>{ms(cmp.hohmann.dvTotal)}</td>
+              <td className={cmp.cheaper === 'bielliptic' ? 'tone-active' : undefined}>{ms(cmp.bielliptic.dvTotal)}</td>
+              <td className="unit">m/s</td>
+            </tr>
+            <tr>
+              <th scope="row">Time of flight</th>
+              <td>{duration(cmp.hohmann.tof * 1000).slice(1)}</td>
+              <td>{duration(cmp.bielliptic.tof * 1000).slice(1)}</td>
+              <td className="unit" />
+            </tr>
+            <tr>
+              <th scope="row">Propellant</th>
+              <td>{fx(propHo.propellant, 0)}</td>
+              <td>{fx(propBi.propellant, 0)}</td>
+              <td className="unit">kg</td>
+            </tr>
+          </tbody>
+        </table>
+        <p className="block-note">
+          {cmp.coplanar ? (
+            <>
+              Both orbits are in the same plane, so the classic rule applies to the radius ratio r₂/r₁ = {fx(ratio, 2)}:{' '}
+              {ratio < BIELLIPTIC_RATIO_MIN
+                ? `below ${BIELLIPTIC_RATIO_MIN} the Hohmann transfer is always cheaper.`
+                : ratio < BIELLIPTIC_RATIO_ANY
+                  ? `between ${BIELLIPTIC_RATIO_MIN} and ${BIELLIPTIC_RATIO_ANY} a bi-elliptic transfer is cheaper only with a high enough intermediate apoapsis.`
+                  : `above ${BIELLIPTIC_RATIO_ANY} a bi-elliptic transfer is cheaper for any intermediate apoapsis beyond the target.`}{' '}
+            </>
+          ) : (
+            <>
+              With a {fx(di, 2)}° plane change the {BIELLIPTIC_RATIO_MIN} rule does not apply: it assumes both orbits share a plane. The
+              bi-elliptic transfer turns the plane at {fx(Math.max(hb, h1, h2), 0)} km, where the spacecraft moves at only {ms(vAtRb)} m/s,
+              so it can win at much smaller radius ratios (here r₂/r₁ = {fx(ratio, 2)}).{' '}
+            </>
+          )}
+          {cmp.cheaper === 'bielliptic'
+            ? `With these numbers the bi-elliptic transfer saves ${ms(cmp.saving)} m/s, but takes ${fx(cmp.timeFactor, 1)} times as long.`
+            : `With these numbers the bi-elliptic transfer costs ${ms(-cmp.saving)} m/s more and takes ${fx(cmp.timeFactor, 1)} times as long.`}{' '}
+          Propellant is for {craft}, not for this object.
+        </p>
+      </section>
 
-      <Fold title="Propellant budget" summary={`${fx(prop.propellant, 0)} kg of propellant at I_sp = ${isp} s`}>
+      <Fold title="Propellant budget" summary={`${fx(prop.propellant, 0)} kg of propellant for ${craft}`}>
+        <p className="block-note" style={{ marginTop: 0 }}>
+          The spacecraft is hypothetical, not {record.OBJECT_NAME}: set its dry mass (everything except propellant) and engine to match your
+          own design.
+        </p>
 
         <div className="btn-row">
           {ENGINES.map((e) => (

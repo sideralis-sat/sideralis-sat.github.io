@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react'
 import { CONSTELLATION_INDEX } from '../../data/constellations'
 import type { SatRecord } from '../../data/types'
-import { bestPlan, chaserPropellant, kitDv, rankCandidates, targetOrbit, vCirc } from '../../lib/debrisRemoval'
+import { bestPlan, chaserPropellant, kitCapacityKg, kitDv, rankCandidates, targetOrbit, vCirc } from '../../lib/debrisRemoval'
 import { altitudeHistogram, deorbitDv } from '../../lib/missionDesign'
 import { Row } from '../dossier/Row'
 import { Fold } from '../detail'
@@ -63,6 +63,8 @@ export function RemovalTab(p: Props) {
   const byIndex = (i: number) => orbits.find((o) => o.index === i)!
   const last = plan ? byIndex(plan.order[plan.order.length - 1]) : null
   const fuel = plan && last ? chaserPropellant(plan, dry, kit, isp, deorbitDv(last.alt)) : null
+  const maxKitDv = Math.max(0, ...orbits.map((o) => kitDv(o)))
+  const kitCap = kitCapacityKg(kit, maxKitDv, isp)
 
   const add = (i: number) => {
     if (p.targets.includes(i) || p.targets.length >= MAX_TARGETS) return
@@ -230,6 +232,22 @@ export function RemovalTab(p: Props) {
               />
               <Row label="Propellant" value={fx(fuel.propellant, 0)} unit="kg" />
               <Row
+                label="Heaviest object each kit can deorbit"
+                value={fx(kitCap, 0)}
+                unit="kg"
+                tone={kitCap < 1000 ? 'caution' : undefined}
+                explain={{
+                  text: (
+                    <>
+                      The kit pushes the object down with its own propellant, taken as 60 % of the kit’s mass at the same I_sp, for the largest kit Δv
+                      in this tour ({fx(maxKitDv, 0)} m/s). Rocket bodies weigh 1 to 9 t, so they need a much bigger kit or the chaser itself to
+                      push them.
+                    </>
+                  ),
+                  tex: 'M_{\\max} = \\frac{f\\,m_{\\text{kit}}}{1 - e^{-\\Delta v/(I_{sp} g_0)}} - m_{\\text{kit}}',
+                }}
+              />
+              <Row
                 label="Verdict"
                 value={fuel.wet <= 1500 ? 'Feasible on a small launcher' : fuel.wet <= 6000 ? 'Needs a dedicated medium launch' : 'Not realistic'}
                 tone={fuel.wet <= 1500 ? 'good' : fuel.wet <= 6000 ? 'caution' : 'warn'}
@@ -268,7 +286,7 @@ export function RemovalTab(p: Props) {
             </Fold>
           )}
           <p className="block-note">
-            Each leg is a Hohmann transfer with the plane change merged into its cheaper burn. Rendezvous and capture operations take 10 days per
+            Each leg is a Hohmann transfer with the plane change split between its two burns to minimise Δv. Rendezvous and capture operations take 10 days per
             target. All orders are tried and the one with the least Δv is shown.
           </p>
         </section>

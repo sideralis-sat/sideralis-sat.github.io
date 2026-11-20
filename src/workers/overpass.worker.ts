@@ -4,16 +4,17 @@
  *
  * Cada satélite se propaga con SGP4 cada 30 s. La distancia sobre la superficie entre su punto
  * subsatélite y el objetivo tiene un mínimo en cada pasada (cuando el punto queda en
- * perpendicular a la traza); ese mínimo se afina por sección áurea hasta 0,5 s. Si es menor que
- * media anchura de franja, el punto cae dentro de la imagen.
+ * perpendicular a la traza); ese mínimo se afina por sección áurea hasta 0,5 s. Con el lado
+ * (derecha o izquierda de la marcha) y la altitud se mira si cae dentro de los ángulos de visión
+ * del instrumento (las franjas del radar y de OLCI no están centradas en la traza).
  */
 import { eciToGeodetic, gstime, json2satrec, propagate, type SatRec } from 'satellite.js'
 import type { SatRecord } from '../data/types'
-import { offNadirDeg, type Opportunity } from '../lib/earthImaging'
+import { inSwath, maxReachKm, offNadirDeg, type Opportunity } from '../lib/earthImaging'
 import { sunElevationAt, topocentric } from '../lib/sky'
 
 export interface OverpassRequest {
-  sats: { imager: string; record: SatRecord; swathKm: number }[]
+  sats: { imager: string; record: SatRecord; look: [number, number] }[]
   lat: number
   lon: number
   t0: number
@@ -60,7 +61,7 @@ self.onmessage = (e: MessageEvent<OverpassRequest>) => {
       const c = Math.min(1, Math.max(-1, ux * tx + uy * ty + uz * tz))
       return { d: Math.acos(c) * R, g, v: pv!.velocity, u: [ux, uy, uz] }
     }
-    const reach = s.swathKm / 2 + 400
+    const reach = maxReachKm(s.look, 900) + 400
     let a = sample(q.t0)
     let b = sample(q.t0 + STEP)
     for (let t = q.t0 + STEP; t < q.t1; t += STEP) {
@@ -91,22 +92,22 @@ self.onmessage = (e: MessageEvent<OverpassRequest>) => {
         }
         const tm = Math.round((lo + hi) / 2)
         const m = sample(tm)
-        if (m && m.d <= s.swathKm / 2) {
-          // Lado: signo de (dirección de la traza × vertical del satélite) · objetivo
-          const after = sample(tm + 1000)
-          let side: 1 | -1 = 1
-          if (after) {
-            const dx = after.u[0] - m.u[0]
-            const dy = after.u[1] - m.u[1]
-            const dz = after.u[2] - m.u[2]
-            // Derecha de la marcha = dirección × vertical
-            const rx = dy * m.u[2] - dz * m.u[1]
-            const ry = dz * m.u[0] - dx * m.u[2]
-            const rz = dx * m.u[1] - dy * m.u[0]
-            const right = rx * tx + ry * ty + rz * tz > 0
-            // Este u oeste según el sentido de la pasada: al subir, la derecha queda al este
-            side = (m.v.z > 0) === right ? 1 : -1
-          }
+        // Lado: signo de (dirección de la traza × vertical del satélite) · objetivo
+        const after = m ? sample(tm + 1000) : null
+        let right = true
+        if (m && after) {
+          const dx = after.u[0] - m.u[0]
+          const dy = after.u[1] - m.u[1]
+          const dz = after.u[2] - m.u[2]
+          // Derecha de la marcha = dirección × vertical
+          const rx = dy * m.u[2] - dz * m.u[1]
+          const ry = dz * m.u[0] - dx * m.u[2]
+          const rz = dx * m.u[1] - dy * m.u[0]
+          right = rx * tx + ry * ty + rz * tz > 0
+        }
+        if (m && after && inSwath(s.look, right ? m.d : -m.d, m.g.height)) {
+          // Este u oeste según el sentido de la pasada: al subir, la derecha queda al este
+          const side: 1 | -1 = (m.v.z > 0) === right ? 1 : -1
           out.push({
             imager: s.imager,
             t: tm,
